@@ -20,7 +20,7 @@ public class Main {
     public static LauncherWindow launcherWindow;
 
     public static void main(String[] args) throws Exception {
-        
+
         logger.debug("Mincraft.biz launcher {}", Config.LAUNCHER_VERSION);
         logger.debug("Supporting your system: {}", OperatingSystem.getCurrentPlatform().isSupported());
         logger.debug("Expected Java path: {}", OperatingSystem.getCurrentPlatform().getJavaDir());
@@ -33,27 +33,24 @@ public class Main {
             logger.error("Can't set system look and feel!", ex);
         }
 
-        // Check version
-        if(!Launcher.isLastVersion()) {
+        // Check app version
+        if (!Launcher.isLastVersion()) {
             logger.debug("Update founded! New version: {}", Launcher.getVersionState());
 
             int result = JOptionPane.showConfirmDialog(null, "Do you want to update?", "New version founded", JOptionPane.YES_NO_OPTION);
-            if(result == 0) {
+            if (result == 0) {
                 // TODO: Autoupdate things
             }
 
             System.exit(0);
         }
 
+        // Init window
+        launcherWindow = new LauncherWindow();
+        launcherWindow.setVisible(true);
+
         int result = JOptionPane.showConfirmDialog(null, "Do you want to update client?", "Mincraft.biz launcher", JOptionPane.YES_NO_OPTION);
-        if(result == 0) {
-
-            // Init window in Swing thread
-            SwingUtilities.invokeLater(() -> {
-                launcherWindow = new LauncherWindow();
-                launcherWindow.setVisible(true);
-            });
-
+        if (result == 0) {
             // Update game cache
             Updater updater = new Updater();
             updater.setName("Updater");

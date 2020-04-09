@@ -13,7 +13,34 @@ import javax.swing.*;
 
 public class LauncherWindow extends JFrame {
 
-    private final static Logger logger = LoggerFactory.getLogger(Main.class);
+    /*private static void test() {
+
+        final JProgressBar jProgressBar = new JProgressBar();
+        jProgressBar.setMaximum(100000);
+        JFrame frame = new JFrame();
+        frame.setContentPane(jProgressBar);
+        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        frame.setSize(300, 70);
+        frame.setLocationRelativeTo(null);
+        frame.setVisible(true);
+        frame.setAlwaysOnTop(true);
+
+        Download download = new Download("https://launcher.minecraft.biz/client/1.12.2/minecraft.jar", "workdir/minecraft.jar");
+        download.setPathParent("D:/Workspace/GitHub/Minecraft.biz/launcher/");
+
+        DownloadTask task = new DownloadTask(download) {
+            @Override
+            public void onProgress(int downloaded, int complete) {
+                //final int currentProgress = (int) ((((double) downloaded) / ((double) complete)) * 100000d); // calculate progress
+                //final int value = downloaded; // update progress bar
+                SwingUtilities.invokeLater(() -> jProgressBar.setValue(downloaded));
+            }
+        };
+        (new Thread(task)).start();
+        System.exit(0);
+    }*/
+
+    private final static Logger logger = LoggerFactory.getLogger(LauncherWindow.class);
 
     private JLabel icon;
     private JLabel label;

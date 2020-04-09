@@ -1,5 +1,6 @@
 package biz.minecraft.launcher.updater;
 
+import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.OperatingSystem;
 import biz.minecraft.launcher.Util;
 import biz.minecraft.launcher.updater.version.*;
@@ -18,6 +19,10 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.swing.*;
+import java.awt.*;
+
+import javax.swing.SwingUtilities;
 
 public class Updater extends Thread {
 
@@ -202,18 +207,28 @@ public class Updater extends Thread {
      */
     private void download(Collection<Download> downloads) {
 
-        for (Download download: downloads) {
+        int count = 0;
 
-            try {
-                FileUtils.copyURLToFile(
-                    download.getUrl(), 
-                    workingDirectory.toPath().resolve(download.getPath()).toFile()
-                );
+        JProgressBar progressBar = Main.launcherWindow.getProgressBar();
+        progressBar.setString(count + "/" + (downloads.size() - 1));
+        progressBar.setMaximum(downloads.size() - 1);
+        progressBar.setStringPainted(true);
+        progressBar.setIndeterminate(false);
+
+        try {
+            for (Download download: downloads) {
                 logger.info("Downloading: " + download.getPath() + " From: " + download.getUrl());
-            } catch (IOException e) {
-                logger.error("Filesystem query error.", e);
-            }
+                FileUtils.copyURLToFile(download.getUrl(), workingDirectory.toPath().resolve(download.getPath()).toFile());
 
+                final int fcount = count;
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setString(fcount + "/" + downloads.size());
+                    progressBar.setValue(fcount);
+                });
+                count++;
+            }
+        } catch (IOException e) {
+            logger.error("Filesystem query error.", e);
         }
     }
 
