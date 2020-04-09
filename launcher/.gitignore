@@ -4,3 +4,4 @@ build/
 .vscode/
 .project
 .settings
+.classpath
