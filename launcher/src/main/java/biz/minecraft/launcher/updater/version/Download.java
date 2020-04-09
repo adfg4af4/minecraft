@@ -1,18 +1,22 @@
 package biz.minecraft.launcher.updater.version;
 
+import java.net.URL;
+
+import biz.minecraft.launcher.Util;
+
 public class Download {
 
-    private String url; // TODO: Change type to URL
+    private URL url;
     private String path; // TODO: Probably change type to File or Path
 
     public Download() { }
 
     public Download(String url, String path) {
-        this.url = url;
+        this.url = Util.getURL(url);
         this.path = path;
     }
 
-    public String getUrl() {
+    public URL getUrl() {
         return url;
     }
 

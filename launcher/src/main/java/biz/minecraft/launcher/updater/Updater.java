@@ -205,7 +205,7 @@ public class Updater extends Thread {
 
             try {
                 FileUtils.copyURLToFile(
-                        Util.getURL(download.getUrl()),
+                    download.getUrl(),
                         new File(workingDirectory, download.getPath())
                 );
                 logger.info("Downloading: " + download.getPath() + " From: " + download.getUrl());
