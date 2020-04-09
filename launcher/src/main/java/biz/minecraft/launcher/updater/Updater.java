@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -56,7 +57,7 @@ public class Updater extends Thread {
 
         /** Unpack natives */
 
-        Map<String, ExtractRules> nativesExtractRules = getRelevantNativesExtractRules(minecraftVersionLibraries);
+        Map<Path, ExtractRules> nativesExtractRules = getRelevantNativesExtractRules(minecraftVersionLibraries);
 
         unpackNatives(natives, "versions/1.12.2/natives/", nativesExtractRules);
 
@@ -205,8 +206,8 @@ public class Updater extends Thread {
 
             try {
                 FileUtils.copyURLToFile(
-                    download.getUrl(),
-                        new File(workingDirectory, download.getPath())
+                    download.getUrl(), 
+                    workingDirectory.toPath().resolve(download.getPath()).toFile()
                 );
                 logger.info("Downloading: " + download.getPath() + " From: " + download.getUrl());
             } catch (IOException e) {
@@ -222,9 +223,9 @@ public class Updater extends Thread {
      * @param libraries
      * @return relevantNativesExtractRules Map<String, ExtractRules>
      */
-    private Map<String, ExtractRules> getRelevantNativesExtractRules(Collection<Library> libraries) {
+    private Map<Path, ExtractRules> getRelevantNativesExtractRules(Collection<Library> libraries) {
 
-        Map<String, ExtractRules> relevantNativesExtractRules = new HashMap<>();
+        Map<Path, ExtractRules> relevantNativesExtractRules = new HashMap<>();
 
         for (final Library library : libraries) {
 
@@ -251,7 +252,7 @@ public class Updater extends Thread {
      * @param path String
      * @param nativesExtractRules Map<String, ExtractRules>
      */
-    private void unpackNatives(Collection<Download> natives, String path, Map<String, ExtractRules> nativesExtractRules) {
+    private void unpackNatives(Collection<Download> natives, String path, Map<Path, ExtractRules> nativesExtractRules) {
 
         final File targetDir = new File(workingDirectory, path);
 
@@ -262,8 +263,8 @@ public class Updater extends Thread {
             ExtractRules nativeLibraryExtractRules = nativesExtractRules.get(nativeLibrary.getPath());
 
             try {
-                final ZipFile zip = new ZipFile(new File(workingDirectory, nativeLibrary.getPath()));
-
+                final ZipFile zip = new ZipFile(workingDirectory.toPath().resolve(nativeLibrary.getPath()).toFile());
+                
                 final Enumeration<? extends ZipEntry> entries = zip.entries();
 
                 while (entries.hasMoreElements()) {
