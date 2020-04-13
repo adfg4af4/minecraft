@@ -1,6 +1,9 @@
 package biz.minecraft.launcher;
 
+import biz.minecraft.launcher.updater.DownloadTask;
 import biz.minecraft.launcher.updater.Updater;
+import biz.minecraft.launcher.updater.version.Download;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,117 +12,53 @@ import javax.swing.*;
 // import java.awt.*;
 import java.io.File;
 // import java.net.URL;
-import java.util.Scanner;
 
-public class Main extends JFrame {
+public class Main {
 
-    private final static Logger logger = LoggerFactory.getLogger(Main.class);
-/*
-    public Main() {
+    private static final Logger logger = LoggerFactory.getLogger(Main.class);
 
-        // Defining icons
+    public static LauncherWindow launcherWindow;
 
-        URL originalImageURL = this.getClass().getClassLoader().getResource("grass.png");
-        ImageIcon originalIcon = new ImageIcon(originalImageURL);
-        Image originalImage = originalIcon.getImage();
+    public static void main(String[] args) throws Exception {
 
-        Image resizedImage = originalImage.getScaledInstance(45, 48, Image.SCALE_SMOOTH);
-        ImageIcon resizedIcon = new ImageIcon(resizedImage);
+        logger.debug("Mincraft.biz launcher {}", Config.LAUNCHER_VERSION);
+        logger.debug("Supporting your system: {}", OperatingSystem.getCurrentPlatform().isSupported());
+        logger.debug("Expected Java path: {}", OperatingSystem.getCurrentPlatform().getJavaDir());
+        logger.debug("Game directory based on your OS: '{}'", getWorkingDirectory());
 
-        // Frame parameters
+        // Set system laf
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception ex) {
+            logger.error("Can't set system look and feel!", ex);
+        }
 
-        setTitle("Updating Minecraft");
-        setIconImage(originalImage);
-        setResizable(false);
+        // Check app version
+        if (!Launcher.isLastVersion()) {
+            logger.debug("Update founded! New version: {}", Launcher.getVersionState());
 
-        // Handlers
+            int result = JOptionPane.showConfirmDialog(null, "Do you want to update?", "New version founded", JOptionPane.YES_NO_OPTION);
+            if (result == 0) {
+                // TODO: Autoupdate things
+            }
 
-        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+            System.exit(0);
+        }
 
-        // Components
+        // Init window
+        launcherWindow = new LauncherWindow();
+        launcherWindow.setVisible(true);
 
-        JLabel icon = new JLabel(resizedIcon);
-        JLabel label = new JLabel("Updating Minecraft");
-        JProgressBar progressBar = new JProgressBar(0, 100);
-
-        // Progress bar properties
-
-        progressBar.setIndeterminate(true);
-        progressBar.setPreferredSize(new Dimension(300, 10));
-
-        // Layout manager
-
-        Container contentPane = getContentPane();
-        GroupLayout layout = new GroupLayout(contentPane);
-        contentPane.setLayout(layout);
-
-        // Automatic gap insertion
-
-        layout.setAutoCreateGaps(true);
-        layout.setAutoCreateContainerGaps(true);
-
-        // Root horizontal group
-
-        layout.setHorizontalGroup(
-            layout.createSequentialGroup()
-                .addComponent(icon)
-                .addGroup(layout.createParallelGroup()
-                    .addComponent(label)
-                    .addComponent(progressBar))
-        );
-
-        // Root vertical group
-
-        layout.setVerticalGroup(
-            layout.createParallelGroup()
-                .addComponent(icon)
-                .addGroup(layout.createSequentialGroup()
-                    .addComponent(label)
-                    .addComponent(progressBar))
-        );
-        
-        // layout.linkSize(SwingConstants.HORIZONTAL, icon, progressBar);
-
-        pack();
-
-        // Frame parameters after packing
-
-        setLocationRelativeTo(null);
-    }
-*/
-    public static void main(String[] args) throws InterruptedException {
-        /*
-        java.awt.EventQueue.invokeLater(() -> {
-            JFrame.setDefaultLookAndFeelDecorated(true);
-            new Main().setVisible(true);
-        });
-        */
-
-        System.out.println("Mincraft.biz Launcher " + Config.LAUNCHER_VERSION);
-        System.out.println("Last version is: " + Launcher.getVersionState().toString());
-        System.out.println("The current launcher version is the latest: " + Launcher.isLastVersion());
-
-        System.out.println("Minecraft.biz Launcher 0.1");
-        System.out.println("Supporting your system: " + OperatingSystem.getCurrentPlatform().isSupported());
-        System.out.println("Expected Java path: " + OperatingSystem.getCurrentPlatform().getJavaDir());
-        System.out.println("Game directory based on your OS: '" + getWorkingDirectory());
-        System.out.println("Do you want to update client? (Y/n)");
-
-        Scanner in = new Scanner(System.in);
-        String answer = in.nextLine().toLowerCase();
-
-        if (answer.equals("y") || answer.equals("yes"))
-        {
+        int result = JOptionPane.showConfirmDialog(null, "Do you want to update client?", "Mincraft.biz launcher", JOptionPane.YES_NO_OPTION);
+        if (result == 0) {
+            // Update game cache
             Updater updater = new Updater();
             updater.setName("Updater");
             updater.start();
         }
-        else {
-            System.out.println("Unexpected command.");
-        }
 
-        in.close();
-
+        // Launch game
+        // GameLauncher game = new GameLauncher();
     }
 
     public static File getWorkingDirectory() {

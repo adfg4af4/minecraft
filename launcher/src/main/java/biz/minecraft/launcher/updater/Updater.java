@@ -1,5 +1,6 @@
 package biz.minecraft.launcher.updater;
 
+import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.OperatingSystem;
 import biz.minecraft.launcher.Util;
 import biz.minecraft.launcher.updater.version.*;
@@ -11,12 +12,17 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
+import javax.swing.*;
+import java.awt.*;
+
+import javax.swing.SwingUtilities;
 
 public class Updater extends Thread {
 
@@ -56,7 +62,7 @@ public class Updater extends Thread {
 
         /** Unpack natives */
 
-        Map<String, ExtractRules> nativesExtractRules = getRelevantNativesExtractRules(minecraftVersionLibraries);
+        Map<Path, ExtractRules> nativesExtractRules = getRelevantNativesExtractRules(minecraftVersionLibraries);
 
         unpackNatives(natives, "versions/1.12.2/natives/", nativesExtractRules);
 
@@ -201,18 +207,28 @@ public class Updater extends Thread {
      */
     private void download(Collection<Download> downloads) {
 
-        for (Download download: downloads) {
+        int count = 0;
 
-            try {
-                FileUtils.copyURLToFile(
-                        Util.getURL(download.getUrl()),
-                        new File(workingDirectory, download.getPath())
-                );
+        JProgressBar progressBar = Main.launcherWindow.getProgressBar();
+        progressBar.setString(count + "/" + (downloads.size() - 1));
+        progressBar.setMaximum(downloads.size() - 1);
+        progressBar.setStringPainted(true);
+        progressBar.setIndeterminate(false);
+
+        try {
+            for (Download download: downloads) {
                 logger.info("Downloading: " + download.getPath() + " From: " + download.getUrl());
-            } catch (IOException e) {
-                logger.error("Filesystem query error.", e);
-            }
+                FileUtils.copyURLToFile(download.getUrl(), workingDirectory.toPath().resolve(download.getPath()).toFile());
 
+                final int fcount = count;
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setString(fcount + "/" + downloads.size());
+                    progressBar.setValue(fcount);
+                });
+                count++;
+            }
+        } catch (IOException e) {
+            logger.error("Filesystem query error.", e);
         }
     }
 
@@ -222,9 +238,9 @@ public class Updater extends Thread {
      * @param libraries
      * @return relevantNativesExtractRules Map<String, ExtractRules>
      */
-    private Map<String, ExtractRules> getRelevantNativesExtractRules(Collection<Library> libraries) {
+    private Map<Path, ExtractRules> getRelevantNativesExtractRules(Collection<Library> libraries) {
 
-        Map<String, ExtractRules> relevantNativesExtractRules = new HashMap<>();
+        Map<Path, ExtractRules> relevantNativesExtractRules = new HashMap<>();
 
         for (final Library library : libraries) {
 
@@ -251,7 +267,7 @@ public class Updater extends Thread {
      * @param path String
      * @param nativesExtractRules Map<String, ExtractRules>
      */
-    private void unpackNatives(Collection<Download> natives, String path, Map<String, ExtractRules> nativesExtractRules) {
+    private void unpackNatives(Collection<Download> natives, String path, Map<Path, ExtractRules> nativesExtractRules) {
 
         final File targetDir = new File(workingDirectory, path);
 
@@ -262,8 +278,8 @@ public class Updater extends Thread {
             ExtractRules nativeLibraryExtractRules = nativesExtractRules.get(nativeLibrary.getPath());
 
             try {
-                final ZipFile zip = new ZipFile(new File(workingDirectory, nativeLibrary.getPath()));
-
+                final ZipFile zip = new ZipFile(workingDirectory.toPath().resolve(nativeLibrary.getPath()).toFile());
+                
                 final Enumeration<? extends ZipEntry> entries = zip.entries();
 
                 while (entries.hasMoreElements()) {
