@@ -13,6 +13,8 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
+$router->post('authenticate', 'AuthenticationController@authenticate');
+
+$router->post('join', 'AuthenticationController@join');
+
+$router->get('hasJoined', 'AuthenticationController@hasJoined');
