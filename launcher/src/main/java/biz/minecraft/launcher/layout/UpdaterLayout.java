@@ -1,4 +1,4 @@
-package biz.minecraft.launcher;
+package biz.minecraft.launcher.layout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,48 +11,21 @@ import java.io.InputStream;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
-public class LauncherWindow extends JFrame {
+public class UpdaterLayout extends JFrame {
 
-    /*private static void test() {
-
-        final JProgressBar jProgressBar = new JProgressBar();
-        jProgressBar.setMaximum(100000);
-        JFrame frame = new JFrame();
-        frame.setContentPane(jProgressBar);
-        frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        frame.setSize(300, 70);
-        frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
-        frame.setAlwaysOnTop(true);
-
-        Download download = new Download("https://launcher.minecraft.biz/client/1.12.2/minecraft.jar", "workdir/minecraft.jar");
-        download.setPathParent("D:/Workspace/GitHub/Minecraft.biz/launcher/");
-
-        DownloadTask task = new DownloadTask(download) {
-            @Override
-            public void onProgress(int downloaded, int complete) {
-                //final int currentProgress = (int) ((((double) downloaded) / ((double) complete)) * 100000d); // calculate progress
-                //final int value = downloaded; // update progress bar
-                SwingUtilities.invokeLater(() -> jProgressBar.setValue(downloaded));
-            }
-        };
-        (new Thread(task)).start();
-        System.exit(0);
-    }*/
-
-    private final static Logger logger = LoggerFactory.getLogger(LauncherWindow.class);
+    private final static Logger logger = LoggerFactory.getLogger(UpdaterLayout.class);
 
     private JLabel icon;
     private JLabel label;
     private JProgressBar progressBar;
 
-    public LauncherWindow() {
+    public UpdaterLayout() {
 
         // Load window icon
         Image grassImage = loadImage("/grass.png");
 
         // Frame parameters
-        setTitle("Updating Minecraft");
+        setTitle("Minecraft.biz Updater");
         setResizable(false);
         setIconImage(grassImage);
 
@@ -105,10 +78,15 @@ public class LauncherWindow extends JFrame {
         return this.progressBar;
     }
 
+    /**
+     *
+     *
+     * @param path
+     * @return
+     */
     public static Image loadImage(String path) {
 
-        try (InputStream is = LauncherWindow.class.getResourceAsStream(path)) {
-
+        try (InputStream is = UpdaterLayout.class.getResourceAsStream(path)) {
             return ImageIO.read(is);
         } catch (IOException ex) {
             logger.error("Can't read image!", ex);

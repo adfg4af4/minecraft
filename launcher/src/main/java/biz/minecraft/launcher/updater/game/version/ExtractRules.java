@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.updater.version;
+package biz.minecraft.launcher.updater.game.version;
 
 import java.util.ArrayList;
 import java.util.Collections;

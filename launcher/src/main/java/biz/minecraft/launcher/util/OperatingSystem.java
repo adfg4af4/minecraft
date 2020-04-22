@@ -1,4 +1,4 @@
-package biz.minecraft.launcher;
+package biz.minecraft.launcher.util;
 
 import com.google.gson.annotations.SerializedName;
 

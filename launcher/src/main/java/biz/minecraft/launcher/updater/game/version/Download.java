@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.updater.version;
+package biz.minecraft.launcher.updater.game.version;
 
 import java.io.BufferedOutputStream;
 import java.io.FileOutputStream;
@@ -12,7 +12,7 @@ import javax.swing.SwingUtilities;
 
 import org.apache.commons.io.input.AutoCloseInputStream;
 
-import biz.minecraft.launcher.Util;
+import biz.minecraft.launcher.util.Helper;
 
 public class Download {
 
@@ -28,7 +28,7 @@ public class Download {
     }
 
     public Download(String url, String path) {
-        this(Util.getURL(url), Path.of(path));
+        this(Helper.getURL(url), Path.of(path));
     }
 
     public URL getUrl() {

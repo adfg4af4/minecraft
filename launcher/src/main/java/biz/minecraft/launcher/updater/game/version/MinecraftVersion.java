@@ -1,10 +1,14 @@
-package biz.minecraft.launcher.updater.version;
+package biz.minecraft.launcher.updater.game.version;
 
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+/**
+ * Game version deserialization class.
+ * https://cloud.minecraft.biz/game/wasteland/version.json
+ */
 public class MinecraftVersion {
 
     private LinkedHashMap<String, Download> downloads;

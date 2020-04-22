@@ -1,9 +1,9 @@
 package biz.minecraft.launcher.updater;
 
 import biz.minecraft.launcher.Main;
-import biz.minecraft.launcher.OperatingSystem;
-import biz.minecraft.launcher.Util;
-import biz.minecraft.launcher.updater.version.*;
+import biz.minecraft.launcher.util.OperatingSystem;
+import biz.minecraft.launcher.util.Helper;
+import biz.minecraft.launcher.updater.game.version.*;
 import com.google.gson.Gson;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -20,22 +20,29 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
 import javax.swing.*;
-import java.awt.*;
 
 import javax.swing.SwingUtilities;
 
-public class Updater extends Thread {
+public class GameUpdater implements Runnable {
 
-    private final static Logger logger = LoggerFactory.getLogger(Updater.class);
+    private final Thread thread;
+
+    private final static Logger logger = LoggerFactory.getLogger(GameUpdater.class);
     private final Gson gson = new Gson();
     private final OperatingSystem os = OperatingSystem.getCurrentPlatform();
-    private final File workingDirectory = getWorkingDirectory();
+    private final File workingDirectory = Helper.getWorkingDirectory();
+
+
+    public GameUpdater() {
+        thread = new Thread(this, "Game-Updater");
+        thread.start();
+    }
 
     public void run() {
 
         /** Deserialize minecraft version JSON from URL */
 
-        final MinecraftVersion minecraftVersion = getMinecraftVersion(Util.getURL("https://launcher.minecraft.biz/client/1.12.2/version.json"));
+        final MinecraftVersion minecraftVersion = getMinecraftVersion(Helper.getURL("https://cloud.minecraft.biz/game/wasteland/version.json"));
 
         /** Get libraries collection */
 
@@ -46,8 +53,8 @@ public class Updater extends Thread {
         final Collection<Download> libraries = getRelevantLibraries(minecraftVersionLibraries);
         final Collection<Download> natives   = getRelevantNatives(minecraftVersionLibraries);
 
-        final Download game   = new Download("https://launcher.minecraft.biz/client/1.12.2/minecraft.jar", "versions/1.12.2/minecraft.jar");
-        final Download assets = new Download("https://launcher.minecraft.biz/client/1.12.2/assets.zip", "assets.zip");
+        final Download game   = new Download("https://cloud.minecraft.biz/game/wasteland/minecraft.jar", "versions/1.12.2/minecraft.jar");
+        final Download assets = new Download("https://cloud.minecraft.biz/game/wasteland/assets.zip", "assets.zip");
 
         final Stream<Download> combinedStream = Stream.concat(libraries.stream(), natives.stream());
 
@@ -69,40 +76,6 @@ public class Updater extends Thread {
         /** Unpack & delete assets.zip */
 
         unpackAssets();
-    }
-
-    /**
-     * Get Minecraft.biz root folder.
-     *
-     * @return File – path to Minecraft.biz root folder.
-     */
-    private File getWorkingDirectory() {
-
-        final String userHome = System.getProperty("user.home", ".");
-        File workingDirectory = null;
-
-        switch (OperatingSystem.getCurrentPlatform()) {
-            case LINUX: {
-                workingDirectory = new File(userHome, "Minecraft.biz/");
-                break;
-            }
-            case WINDOWS: {
-                final String applicationData = System.getenv("APPDATA");
-                final String folder = (applicationData != null) ? applicationData : userHome;
-                workingDirectory = new File(folder, "Minecraft.biz/");
-                break;
-            }
-            case OSX: {
-                workingDirectory = new File(userHome, "Library/Application Support/Minecraft.biz");
-                break;
-            }
-            default: {
-                workingDirectory = new File(userHome, "minecraft.biz/");
-                break;
-            }
-        }
-
-        return workingDirectory;
     }
 
     /**
@@ -209,7 +182,7 @@ public class Updater extends Thread {
 
         int count = 0;
 
-        JProgressBar progressBar = Main.launcherWindow.getProgressBar();
+        JProgressBar progressBar = Main.updaterLayout.getProgressBar();
         progressBar.setString(count + "/" + (downloads.size() - 1));
         progressBar.setMaximum(downloads.size() - 1);
         progressBar.setStringPainted(true);
@@ -305,9 +278,9 @@ public class Updater extends Thread {
                         }
                     }
                     finally {
-                        Util.closeSilently(bufferedOutputStream);
-                        Util.closeSilently(outputStream);
-                        Util.closeSilently(inputStream);
+                        Helper.closeSilently(bufferedOutputStream);
+                        Helper.closeSilently(outputStream);
+                        Helper.closeSilently(inputStream);
                     }
                 }
 
@@ -354,9 +327,9 @@ public class Updater extends Thread {
                     }
                 }
                 finally {
-                    Util.closeSilently(bufferedOutputStream);
-                    Util.closeSilently(outputStream);
-                    Util.closeSilently(inputStream);
+                    Helper.closeSilently(bufferedOutputStream);
+                    Helper.closeSilently(outputStream);
+                    Helper.closeSilently(inputStream);
                 }
             }
 

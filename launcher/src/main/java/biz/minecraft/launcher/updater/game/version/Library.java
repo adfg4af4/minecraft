@@ -1,6 +1,6 @@
-package biz.minecraft.launcher.updater.version;
+package biz.minecraft.launcher.updater.game.version;
 
-import biz.minecraft.launcher.OperatingSystem;
+import biz.minecraft.launcher.util.OperatingSystem;
 
 import java.util.List;
 import java.util.Map;
