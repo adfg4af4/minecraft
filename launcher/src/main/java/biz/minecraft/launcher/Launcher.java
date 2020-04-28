@@ -1,8 +1,6 @@
-package biz.minecraft.launcher.util;
+package biz.minecraft.launcher;
 
-import biz.minecraft.launcher.Configuration;
-import biz.minecraft.launcher.updater.launcher.Version;
-
+import biz.minecraft.launcher.entity.Version;
 import com.google.gson.Gson;
 
 import org.apache.commons.io.IOUtils;

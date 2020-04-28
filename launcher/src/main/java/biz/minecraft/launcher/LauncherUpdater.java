@@ -1,10 +1,7 @@
-package biz.minecraft.launcher.updater;
+package biz.minecraft.launcher;
 
-import biz.minecraft.launcher.Main;
-import biz.minecraft.launcher.updater.launcher.Version;
-import biz.minecraft.launcher.util.Helper;
-import biz.minecraft.launcher.util.Launcher;
-import biz.minecraft.launcher.util.OperatingSystem;
+import biz.minecraft.launcher.entity.Version;
+import biz.minecraft.launcher.util.LauncherUtils;
 
 import org.apache.commons.io.FileUtils;
 
@@ -73,7 +70,7 @@ public class LauncherUpdater implements Runnable {
 
         Version newLauncherVersion = Launcher.getVersion(); // Deserialized version.json object
         URL newLauncherURL = newLauncherVersion.getUrl(); // URL for downloading new launcher
-        File newLauncherTempPath = Helper.getWorkingDirectory().toPath().resolve(newLauncherVersion.getPath()).toFile(); // Temp path for new launcher
+        File newLauncherTempPath = LauncherUtils.getWorkingDirectory().toPath().resolve(newLauncherVersion.getPath()).toFile(); // Temp path for new launcher
 
         if (Launcher.isOutdated()) {
 

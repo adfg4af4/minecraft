@@ -1,6 +1,7 @@
 package biz.minecraft.launcher.util;
 
 import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -11,9 +12,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.zip.ZipFile;
 
-public class Helper {
+public class LauncherUtils {
 
-    private final static Logger logger = LoggerFactory.getLogger(Helper.class);
+    private final static Logger logger = LoggerFactory.getLogger(LauncherUtils.class);
 
     /**
      * One-line transforming string to URL.
@@ -45,25 +46,11 @@ public class Helper {
         }
     }
 
-    /**
-     * Silent closing closeable's.
-     *
-     * @param closeable
-     */
-    public static void closeSilently(final Closeable closeable) {
-        if (closeable != null) {
-            try {
-                closeable.close();
-            }
-            catch (IOException ex) {}
-        }
-    }
-
-    public static void logLauncherInfo(Logger logger) {
-        logger.debug("Mincraft.biz launcher {}", Configuration.CURRENT_VERSION);
-        logger.debug("Supported operating system: {}", OperatingSystem.getCurrentPlatform().isSupported());
-        logger.debug("Auto-generated Java path: {}", OperatingSystem.getCurrentPlatform().getJavaDir());
-        logger.debug("Game directory for current OS: '{}'", Helper.getWorkingDirectory());
+    public static void getLauncherInfo(Logger logger) {
+        logger.debug("Mincraft.biz Launcher {}", Configuration.CURRENT_VERSION);
+        logger.debug("Working directory: '{}'", LauncherUtils.getWorkingDirectory());
+        logger.debug("Java path: {}", OperatingSystem.getCurrentPlatform().getJavaDir());
+        logger.debug("Operating System: {}", OperatingSystem.getCurrentPlatform().toString());
     }
 
     /**

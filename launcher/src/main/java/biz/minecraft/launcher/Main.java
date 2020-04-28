@@ -1,68 +1,59 @@
 package biz.minecraft.launcher;
 
-import biz.minecraft.launcher.updater.GameUpdater;
-import biz.minecraft.launcher.updater.LauncherUpdater;
-import biz.minecraft.launcher.layout.UpdaterLayout;
-import biz.minecraft.launcher.util.Helper;
+import biz.minecraft.launcher.layout.login.LoginLayout;
+import biz.minecraft.launcher.layout.login.entity.AuthenticationResponse;
+import biz.minecraft.launcher.util.LauncherUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import javax.swing.*;
 
-/**
- * This is the main entry point of Minecraft.biz Launcher.
- */
 public class Main {
 
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
-
-    public static UpdaterLayout updaterLayout;
+    private static LoginLayout loginLayout;
+    private static AuthenticationResponse authInfo;
 
     public static void main(String[] args) {
 
-        final GameUpdater gameUpdater;
+        LauncherUtils.getLauncherInfo(logger);
 
-        Helper.logLauncherInfo(logger);
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            logger.debug("Failed setting default system's look & feel.", e);
+        }
 
         /**
-         * Updating Launcher
+         * Background Launcher-Updater Thread
          *
-         * Causes this thread to begin execution and waits for this thread to die.
-         * TODO: Describe passing args array
+         * Launcher will continue executing only after this thread has processed.
          */
 
         final LauncherUpdater launcherUpdater = new LauncherUpdater(args);
 
-        // Авторизация
-
         /**
-         * Updating Game
+         * Entry point of the main functional logic
          *
-         * Causes this thread to begin execution and waits for this thread to die.
+         * Stages of the normal process:
+         *
+         * - Login layout: handles user credentials
+         * - Authenticator: makes request to the authentication server
+         * - Updater layout: shows game-updating process
+         * - Game-Updater: updates game files
+         * - Game-Runner: runs minecraft using authentication server response data
          */
 
-        // Вход в игру
+        loginLayout = new LoginLayout();
 
-
-        // Set system laf
-        try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ex) {
-            logger.error("Can't set system look and feel!", ex);
-        }
-
-        // Init window
-        updaterLayout = new UpdaterLayout();
-        updaterLayout.setVisible(true);
-
-        int result = JOptionPane.showConfirmDialog(null, "Do you want to update client?", "Mincraft.biz launcher", JOptionPane.YES_NO_OPTION);
-
-        if (result == 0) {
-            // Update game cache
-            gameUpdater = new GameUpdater();
-        }
-
-        // Launch game
-        // GameLauncher game = new GameLauncher();
     }
+
+    public static LoginLayout getLoginLayout() {
+        return loginLayout;
+    }
+
+    public static AuthenticationResponse getAuthenticationResponse() { return authInfo; }
+
+    public static void setAuthenticationResponse(AuthenticationResponse authenticationResponse) { authInfo = authenticationResponse; }
 }

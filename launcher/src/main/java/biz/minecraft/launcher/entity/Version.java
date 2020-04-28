@@ -1,6 +1,6 @@
-package biz.minecraft.launcher.updater.launcher;
+package biz.minecraft.launcher.entity;
 
-import biz.minecraft.launcher.util.Helper;
+import biz.minecraft.launcher.util.LauncherUtils;
 
 import java.net.URL;
 import java.nio.file.Path;
@@ -24,7 +24,7 @@ public class Version {
     }
 
     public Version(Double version, String url, String path) {
-        this(version, Helper.getURL(url), Path.of(path));
+        this(version, LauncherUtils.getURL(url), Path.of(path));
     }
 
     public double getVersion() { return version; }

@@ -1,6 +1,6 @@
-package biz.minecraft.launcher.updater.game.version;
+package biz.minecraft.launcher.layout.updater.entity;
 
-import biz.minecraft.launcher.util.OperatingSystem;
+import biz.minecraft.launcher.OperatingSystem;
 import com.google.gson.annotations.SerializedName;
 
 /**

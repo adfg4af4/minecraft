@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.updater.game.version;
+package biz.minecraft.launcher.layout.updater.entity;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ public class MinecraftVersion {
      *
      * @return this downloads -> client -> URL.
      */
-    public URL getClientDownloadURL()
+    public Download getClient()
     {
-        return this.downloads.get("client").getUrl();
+        return this.downloads.get("client");
     }
 }

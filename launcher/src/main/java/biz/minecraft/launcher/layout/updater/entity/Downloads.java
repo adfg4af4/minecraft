@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.updater.game.version;
+package biz.minecraft.launcher.layout.updater.entity;
 
 import java.util.Map;
 
