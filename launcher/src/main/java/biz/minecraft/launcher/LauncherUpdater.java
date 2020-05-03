@@ -1,6 +1,6 @@
 package biz.minecraft.launcher;
 
-import biz.minecraft.launcher.entity.Version;
+import biz.minecraft.launcher.json.LauncherVersion;
 import biz.minecraft.launcher.util.LauncherUtils;
 
 import org.apache.commons.io.FileUtils;
@@ -43,7 +43,7 @@ public class LauncherUpdater implements Runnable {
             thread.join(); // Waits for this thread to die.
         } catch (InterruptedException e) {
             logger.warn("Main Thread has been interrupted. Failed to join Launcher-Updater Thread.", e);
-            JOptionPane.showConfirmDialog(null, "Ошибка обновления, пожалуйста перезапустите лаунчер.", "Minecraft.biz Launcher", JOptionPane.OK_OPTION);
+            JOptionPane.showConfirmDialog(null, "Ошибка обновления, пожалуйста перезапустите лаунчер.", "Minecraft Пустоши", JOptionPane.OK_OPTION);
             System.exit(0);
         }
     }
@@ -68,7 +68,7 @@ public class LauncherUpdater implements Runnable {
      */
     public void run() {
 
-        Version newLauncherVersion = Launcher.getVersion(); // Deserialized version.json object
+        LauncherVersion newLauncherVersion = Launcher.getVersion(); // Deserialized version.json object
         URL newLauncherURL = newLauncherVersion.getUrl(); // URL for downloading new launcher
         File newLauncherTempPath = LauncherUtils.getWorkingDirectory().toPath().resolve(newLauncherVersion.getPath()).toFile(); // Temp path for new launcher
 
@@ -87,7 +87,7 @@ public class LauncherUpdater implements Runnable {
                     break;
                 } catch (IOException e) {
                     logger.warn("Download failed " + newLauncherURL + " -> " + newLauncherTempPath, e);
-                    int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка загрузки новой версии лаунчера, повторить?", "Minecraft.biz Launcher", JOptionPane.YES_NO_OPTION);
+                    int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка загрузки новой версии лаунчера, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
 
                     if (userChoice == 0) {
                         continue;
@@ -105,7 +105,7 @@ public class LauncherUpdater implements Runnable {
                 oldLauncherPath = Main.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath();
             } catch (URISyntaxException e) {
                 logger.warn("Launcher path URL is not formatted to be converted to a URI.", e);
-                JOptionPane.showConfirmDialog(null, "Ошибка определения пути лаунчера, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Ошибка определения пути лаунчера, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 
@@ -124,7 +124,7 @@ public class LauncherUpdater implements Runnable {
                 process = pb.start();
             } catch (IOException e) {
                 logger.warn("Error starting new launcher from the temp folder.", e);
-                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера из временной папки, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера из временной папки, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 
@@ -144,7 +144,7 @@ public class LauncherUpdater implements Runnable {
                 oldLauncherPath = new File(args.get(0));
             } catch (Exception e) {
                 logger.warn("Failed to parse old version launcher path from command-line argument.", e);
-                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера из временной папки, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера из временной папки, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 
@@ -155,7 +155,7 @@ public class LauncherUpdater implements Runnable {
                 logger.debug("Deleted " + oldLauncherPath);
             } catch (IOException e) {
                 logger.warn("Failed to delete " + oldLauncherPath, e);
-                JOptionPane.showConfirmDialog(null, "Не удалось удалить старую вресию лаунчера, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Не удалось удалить старую вресию лаунчера, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 
@@ -166,7 +166,7 @@ public class LauncherUpdater implements Runnable {
                 logger.debug("Copied " + newLauncherTempPath + " -> " + oldLauncherPath);
             } catch (IOException e) {
                 logger.warn("Failed to copy " + newLauncherTempPath + " -> " + oldLauncherPath, e);
-                JOptionPane.showConfirmDialog(null, "Не удалось скопировать новую версию лаунчера на старое место, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Не удалось скопировать новую версию лаунчера на старое место, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 
@@ -195,7 +195,7 @@ public class LauncherUpdater implements Runnable {
                 process = pb.start();
             } catch (IOException e) {
                 logger.warn("Error starting new launcher from old place.", e);
-                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера на старом месте, пожалуйста обратитесь к администратору.", "Minecraft.biz Launcher", JOptionPane.OK_CANCEL_OPTION);
+                JOptionPane.showConfirmDialog(null, "Ошибка запуска новой версии лаунчера на старом месте, пожалуйста обратитесь к администратору.", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
                 System.exit(0);
             }
 

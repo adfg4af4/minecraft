@@ -1,7 +1,7 @@
 package biz.minecraft.launcher;
 
 import biz.minecraft.launcher.layout.login.LoginLayout;
-import biz.minecraft.launcher.layout.login.entity.AuthenticationResponse;
+import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
 import biz.minecraft.launcher.util.LauncherUtils;
 
 import org.slf4j.Logger;

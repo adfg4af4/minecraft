@@ -1,5 +1,6 @@
 package biz.minecraft.launcher.layout.updater;
 
+import biz.minecraft.launcher.game.updater.GameUpdater;
 import net.miginfocom.swing.MigLayout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

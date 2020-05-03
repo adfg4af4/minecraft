@@ -1,11 +1,16 @@
-package biz.minecraft.launcher.layout.updater;
+package biz.minecraft.launcher.game.updater;
 
-import biz.minecraft.launcher.GameRunner;
+import biz.minecraft.launcher.game.runner.GameRunner;
 import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.OperatingSystem;
-import biz.minecraft.launcher.layout.updater.entity.*;
+import biz.minecraft.launcher.game.updater.json.*;
+import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
+import biz.minecraft.launcher.layout.updater.UpdaterLayout;
+import biz.minecraft.launcher.layout.updater.forge.ForgeArtifact;
+import biz.minecraft.launcher.layout.updater.forge.ForgeVersion;
 import biz.minecraft.launcher.util.LauncherUtils;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -51,13 +56,17 @@ public class GameUpdater implements Runnable {
 
     public void run() {
 
-        // Note: Patched AuthLib & Minecraft.jar must be overridden in version.json (!)
+        AuthenticationResponse authInfo = Main.getAuthenticationResponse();
 
-        final MinecraftVersion version = getMinecraftVersion("https://cloud.minecraft.biz/game/wasteland/version.json");
+        // Note: Patched AuthLib & Minecraft.jar must be overridden in minecraft.json (!)
+
+        final MinecraftVersion version = getMinecraftVersion("https://cloud.minecraft.biz/game/wasteland/minecraft.json");
 
         final LinkedList<String> classpath = new LinkedList<>(); // Class path for game runner
 
-        // Libraries-Updater loop
+        /**
+         * Minecraft libraries updater
+         */
 
         for (final Library library : version.getLibraries()) {
 
@@ -75,10 +84,10 @@ public class GameUpdater implements Runnable {
 
                     // Download library if file does not exist or the hash doesn't match
 
-                    if ((file.exists() && !file.isDirectory() && !isHashMatches(file, artifact.getSha1()))
+                    if ((file.exists() && !file.isDirectory() && !checksumValid(file, artifact.getSha1()))
                             || (!file.exists())) {
 
-                        download(artifact, "Updating libraries for your operating system");
+                        download(artifact, "Загрузка библиотек");
 
                     }
 
@@ -106,10 +115,10 @@ public class GameUpdater implements Runnable {
 
                         // Download library if file does not exist or the hash doesn't match
 
-                        if ((file.exists() && !file.isDirectory() && !isHashMatches(file, artifact.getSha1()))
+                        if ((file.exists() && !file.isDirectory() && !checksumValid(file, artifact.getSha1()))
                                 || (!file.exists())) {
 
-                            download(artifact, "Updating libraries for your operating system");
+                            download(artifact, "Загрузка библиотек операционной системы");
 
                         }
                     }
@@ -127,12 +136,12 @@ public class GameUpdater implements Runnable {
 
                 // Native library's jar file does not exist or the hash doesn't match
 
-                if ((file.exists() && !file.isDirectory() && !isHashMatches(file, nativeLibrary.getSha1()))
+                if ((file.exists() && !file.isDirectory() && !checksumValid(file, nativeLibrary.getSha1()))
                         || (!file.exists())) {
 
                     // Download jar
 
-                    download(nativeLibrary, "Updating native libraries");
+                    download(nativeLibrary, "Загрузка нативных библиотек");
 
                     // Unpack jar with extract rules
 
@@ -152,11 +161,10 @@ public class GameUpdater implements Runnable {
          */
 
         final Download minecraft = version.getClient();
-
         minecraft.setPath("versions/1.12.2/minecraft.jar");
 
         final Download assets = new Download(
-            "https://cloud.minecraft.biz/game/wasteland/assets.zip",
+            "https://cloud.minecraft.biz/game/wasteland/minecraft/assets.zip",
             "assets.zip",
             "87cdda5240d8af4969b089152e2ff629f44775d1",
             114_927_430
@@ -173,10 +181,10 @@ public class GameUpdater implements Runnable {
 
             // Download file if it does not exist or the hash doesn't match
 
-            if ((file.exists() && !file.isDirectory() && !isHashMatches(file, download.getSha1()))
+            if ((file.exists() && !file.isDirectory() && !checksumValid(file, download.getSha1()))
                     || (!file.exists())) {
 
-                download(download, "Updating minecraft and downloading assets", true);
+                download(download, "Загрузка игры и компонентов", true);
 
                 // Unpack assets.zip
 
@@ -188,7 +196,82 @@ public class GameUpdater implements Runnable {
 
         // Note: The assets.zip archive is an indicator that there is no need to update & unpack it
 
-        GameRunner gameRunner = new GameRunner(Main.getAuthenticationResponse(), classpath);
+        /**
+         * Forge libraries updater
+         *
+         * Algorithm downloads only client-required libraries from minecraft.net or minecraft.biz repos.
+         * Initially the Forge repository is used instead of the minecraft.biz but it stores libraries in .pack.xz format.
+         *
+         * TODO: Support for the original Forge repository
+         */
+
+        final ForgeVersion forgeVersion = getForgeVersion("https://cloud.minecraft.biz/game/wasteland/forge.json");
+
+        for (ForgeVersion.Library library : forgeVersion.getLibraries()) {
+
+            String clientSideLibrary = library.getClientreq();
+
+            if (clientSideLibrary == null || (clientSideLibrary != null && clientSideLibrary.equals("true"))) {
+
+                String path = library.getName().getPath();
+                URL    url  = library.getUrl();
+
+                if (url == null) {
+                    url = LauncherUtils.getURL("https://libraries.minecraft.net/" + path);
+                } else
+                    url = LauncherUtils.getURL(url + path);
+
+                path = "libraries/" + path;
+
+                File file = workingDirectory.toPath().resolve(path).toFile();
+
+                String absolutePath = file.getAbsolutePath();
+
+                classpath.add(absolutePath);
+
+                // TODO: hash validation
+
+                if (!file.exists())
+                    download(new Download(url, absolutePath, "", 0), "Загрузка библиотек Forge");
+            }
+
+        }
+
+        /**
+         * Extra downloads updater (mods, resourcepacks, default configurations etc.)
+         *
+         * Each download consists of url, path, sha1 and size in bytes.
+         * The algorithm does not reload files that do not have a checksum (sha1-field) specified.
+         */
+
+        ExtraDownloads extraDownloads = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/extra.json");
+
+        for (Download download : extraDownloads.getDownloads()) {
+
+            File   file = workingDirectory.toPath().resolve(download.getPath()).toFile();
+            String hash = download.getSha1();
+
+            // Download file if it does not exist or the hash is invalid
+
+            if ((file.exists() && !file.isDirectory() && hash != null)) {
+
+                if (!checksumValid(file, hash))
+                    download(download, "Загрузка дополнений", true);
+
+            } else if (!file.exists()) {
+
+                download(download, "Загрузка дополнений", true);
+            }
+        }
+
+        /**
+         * Initializing GameRunner with generated libraries classpath,
+         * specified main class and authorization information.
+         */
+
+        final String mainClass = forgeVersion.getMainClass();
+
+        GameRunner gameRunner = new GameRunner(authInfo, classpath, mainClass);
 
     }
 
@@ -255,7 +338,7 @@ public class GameUpdater implements Runnable {
 
     /**
      * Get a deserialized minecraft version object.
-     * https://cloud.minecraft.biz/game/wasteland/version.json
+     * https://cloud.minecraft.biz/game/wasteland/minecraft.json
      *
      * @return Game version data.
      */
@@ -272,7 +355,71 @@ public class GameUpdater implements Runnable {
             } catch (IOException e) {
 
                 logger.warn("Failed to get minecraft version from: " + versionURL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft.biz Launcher", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+
+                if (userChoice == 0) {
+                    continue;
+                } else {
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get a deserialized forge version object.
+     * https://cloud.minecraft.biz/game/wasteland/forge.json
+     *
+     * @return Forge version data.
+     */
+    private ForgeVersion getForgeVersion(String versionURL) {
+
+        while (true) {
+
+            try (InputStream is = new URL(versionURL).openStream()) {
+
+                String version = IOUtils.toString(is, StandardCharsets.UTF_8);
+
+                Gson forgeGson = new GsonBuilder().setPrettyPrinting()
+                        .registerTypeAdapter(ForgeArtifact.class, new ForgeArtifact.Adapter())
+                        .create();
+
+                return forgeGson.fromJson(version, ForgeVersion.class);
+
+            } catch (IOException e) {
+
+                logger.warn("Failed to get forge version from: " + versionURL, e);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+
+                if (userChoice == 0) {
+                    continue;
+                } else {
+                    System.exit(0);
+                }
+            }
+        }
+    }
+
+    /**
+     * Get a deserialized minecraft extra downloads object.
+     * https://cloud.minecraft.biz/game/wasteland/extra.json
+     *
+     * @return Extra downloads data.
+     */
+    private ExtraDownloads getExtraDownloads(String versionURL) {
+
+        while (true) {
+
+            try (InputStream is = new URL(versionURL).openStream()) {
+
+                String json = IOUtils.toString(is, StandardCharsets.UTF_8);
+
+                return gson.fromJson(json, ExtraDownloads.class);
+
+            } catch (IOException e) {
+
+                logger.warn("Failed to get minecraft version from: " + versionURL, e);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -294,14 +441,15 @@ public class GameUpdater implements Runnable {
         URL url = download.getUrl();
         File path = workingDirectory.toPath().resolve(download.getPath()).toFile();
 
+        logger.debug("Downloading " + url + " :: " + path);
+
         while (true) {
             try {
                 FileUtils.copyURLToFile(url, path);
-                logger.debug("Downloaded " + url + " -> " + path);
                 break;
             } catch (IOException e) {
-                logger.warn("Download failed " + url + " -> " + path, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка обновления файлов игры, повторить?", "Minecraft.biz Launcher", JOptionPane.YES_NO_OPTION);
+                logger.warn("Не удалось загрузить " + url + " :: " + path, e);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -326,7 +474,13 @@ public class GameUpdater implements Runnable {
         URL url = download.getUrl();
         File path = workingDirectory.toPath().resolve(download.getPath()).toFile();
 
-        logger.debug("Downloading " + url + " -> " + path);
+        if (path.getParentFile().mkdirs()) {
+            logger.debug("Created catalogs for download.");
+        } else {
+            logger.debug("Catalogs don't need to be created for download.");
+        }
+
+        logger.debug("Downloading " + url + " :: " + path);
 
         while (true) {
             try (BufferedInputStream in = new BufferedInputStream(url.openStream());
@@ -351,11 +505,14 @@ public class GameUpdater implements Runnable {
                     });
                 }
 
-                logger.debug("Downloaded " + url + " -> " + path);
+                SwingUtilities.invokeLater(() -> {
+                    progressBar.setIndeterminate(true);
+                });
+
                 break;
             } catch (IOException e) {
-                logger.warn("Download failed " + url + " -> " + path, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка обновления файлов игры, повторить?", "Minecraft.biz Launcher", JOptionPane.YES_NO_OPTION);
+                logger.warn("Не удалось загрузить " + url + " :: " + path, e);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -398,7 +555,7 @@ public class GameUpdater implements Runnable {
         return sb.toString();
     }
 
-    private boolean isHashMatches(File file, String hash) {
+    private boolean checksumValid(File file, String hash) {
 
         String currentHash = null;
 

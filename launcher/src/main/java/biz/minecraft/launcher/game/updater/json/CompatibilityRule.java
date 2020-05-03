@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.layout.updater.entity;
+package biz.minecraft.launcher.game.updater.json;
 
 import biz.minecraft.launcher.OperatingSystem;
 import com.google.gson.annotations.SerializedName;

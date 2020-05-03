@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.layout.login.entity;
+package biz.minecraft.launcher.layout.login.json;
 
 /**
  * User data serialization class.

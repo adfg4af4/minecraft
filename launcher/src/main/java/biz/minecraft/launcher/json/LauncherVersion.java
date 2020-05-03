@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.entity;
+package biz.minecraft.launcher.json;
 
 import biz.minecraft.launcher.util.LauncherUtils;
 
@@ -9,21 +9,21 @@ import java.nio.file.Path;
  * Launcher version deserialization class.
  * https://cloud.minecraft.biz/launcher/version.json
  */
-public class Version {
+public class LauncherVersion {
 
     private Double version;
     private URL url;
     private String path;
 
-    public Version() { }
+    public LauncherVersion() { }
 
-    public Version(Double version, URL url, Path path) {
+    public LauncherVersion(Double version, URL url, Path path) {
         this.version = version;
         this.url = url;
         this.path = path.toString();
     }
 
-    public Version(Double version, String url, String path) {
+    public LauncherVersion(Double version, String url, String path) {
         this(version, LauncherUtils.getURL(url), Path.of(path));
     }
 

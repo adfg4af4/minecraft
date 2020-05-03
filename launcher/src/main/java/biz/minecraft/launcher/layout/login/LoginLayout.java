@@ -22,7 +22,7 @@ public class LoginLayout extends JFrame {
 
     public LoginLayout() {
 
-        super("Вход на Minecraft.biz");
+        super("Вход на Minecraft Пустоши");
 
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setIconImage(getToolkit().getImage("grass.png"));

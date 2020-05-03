@@ -1,4 +1,4 @@
-package biz.minecraft.launcher.layout.updater.entity;
+package biz.minecraft.launcher.game.updater.json;
 
 import biz.minecraft.launcher.util.LauncherUtils;
 
@@ -6,7 +6,7 @@ import java.net.URL;
 
 /**
  * Minecraft version's download deserialization class.
- * https://cloud.minecraft.biz/game/wasteland/version.json
+ * https://cloud.minecraft.biz/game/wasteland/minecraft.json
  */
 public class Download {
 

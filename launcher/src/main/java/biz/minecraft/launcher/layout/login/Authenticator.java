@@ -1,8 +1,8 @@
 package biz.minecraft.launcher.layout.login;
 
 import biz.minecraft.launcher.Main;
-import biz.minecraft.launcher.layout.login.entity.AuthenticationResponse;
-import biz.minecraft.launcher.layout.login.entity.UserCredentials;
+import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
+import biz.minecraft.launcher.layout.login.json.UserCredentials;
 import biz.minecraft.launcher.layout.updater.UpdaterLayout;
 import com.google.gson.Gson;
 import org.apache.commons.codec.Charsets;

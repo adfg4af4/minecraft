@@ -1,16 +1,16 @@
-package biz.minecraft.launcher.layout.updater.entity;
+package biz.minecraft.launcher.game.updater.json;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 /**
  * Game version deserialization class.
- * https://cloud.minecraft.biz/game/wasteland/version.json
+ * https://cloud.minecraft.biz/game/wasteland/minecraft.json
  */
 public class MinecraftVersion {
 
+    private String mainClass;
     private LinkedHashMap<String, Download> downloads;
     private ArrayList<Library> libraries;
 
@@ -32,4 +32,6 @@ public class MinecraftVersion {
     {
         return this.downloads.get("client");
     }
+
+    public String getMainClass() { return mainClass; }
 }

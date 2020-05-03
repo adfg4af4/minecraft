@@ -1,6 +1,6 @@
 package biz.minecraft.launcher;
 
-import biz.minecraft.launcher.entity.Version;
+import biz.minecraft.launcher.json.LauncherVersion;
 import com.google.gson.Gson;
 
 import org.apache.commons.io.IOUtils;
@@ -20,7 +20,7 @@ public class Launcher {
 
     private final static Gson gson = new Gson();
 
-    private final static Version version = getVersion();
+    private final static LauncherVersion version = getVersion();
 
     /**
      * Get a deserialized launcher version object.
@@ -28,7 +28,7 @@ public class Launcher {
      *
      * @return Latest launcher's version data.
      */
-    public static Version getVersion() {
+    public static LauncherVersion getVersion() {
 
         while (true) {
 
@@ -36,12 +36,12 @@ public class Launcher {
 
                 String version = IOUtils.toString(is, StandardCharsets.UTF_8);
 
-                return gson.fromJson(version, Version.class);
+                return gson.fromJson(version, LauncherVersion.class);
 
             } catch (IOException e) {
 
                 logger.warn("Failed to get launcher version from: " + Configuration.VERSION_URL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft.biz Launcher", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
