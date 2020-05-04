@@ -26,27 +26,38 @@ class AuthenticationController extends Controller
 
             if (!empty($user)) {
 
-                $credentials = DB::table('xf_user_authenticate')->where('user_id', $user->user_id)->first();
-
+                $credentials  = DB::table('xf_user_authenticate')->where('user_id', $user->user_id)->first();
                 $unserialized = unserialize($credentials->data);
 
                 if (password_verify($password, $unserialized['hash'])) {
 
-                    $uuid = str_replace('-', '', Str::uuid());
+                    $player = DB::table('players')->where('user_id', $user->user_id)->first();
+
                     $access_token = str_replace('-', '', Str::uuid());
 
-                    DB::table('players')
-                        ->updateOrInsert(
-                            ['user_id' => $user->user_id],
-                            ['uuid'    => $uuid, 'access_token' => $access_token]
-                        );
+                    if (empty($player)) {
+                        $uuid = str_replace('-', '', Str::uuid());
+
+                        DB::table('players')
+                            ->updateOrInsert(
+                                ['user_id' => $user->user_id],
+                                ['uuid'    => $uuid, 'access_token' => $access_token]
+                            );
+                    } else {
+                        $uuid = $player->uuid;
+
+                        DB::table('players')
+                            ->updateOrInsert(
+                                ['user_id' => $user->user_id],
+                                ['uuid'    => $player->uuid, 'access_token' => $access_token]
+                            );
+                    }
 
                     return response([
                         'username'    => $username,
                         'uuid'        => $uuid,
                         'accessToken' => $access_token
                     ]);
-
                 } else {
                     return response(['errorMessage' => 'Неверный пароль.'], 400);
                 }
@@ -123,7 +134,7 @@ class AuthenticationController extends Controller
 
                 if (!empty($player)) {
 
-                    $base64 = '{"timestamp":' . time() . '","profileId":"' . $player->uuid . '","profileName":"' . $user->username . '","textures":{"SKIN":{"url":"https://launcher.minecraft.biz/skin/default.png"}}}';
+                    $base64 = '{"timestamp":' . time() . '","profileId":"' . $player->uuid . '","profileName":"' . $user->username . '","textures":{"SKIN":{"url":"https://cloud.minecraft.biz/skins/default.png"}}}';
 
                     return response([
                         'id' => $player->uuid,
