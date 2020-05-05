@@ -4,7 +4,6 @@ import biz.minecraft.launcher.Configuration;
 import biz.minecraft.launcher.OperatingSystem;
 import biz.minecraft.launcher.game.runner.json.Server;
 import biz.minecraft.launcher.game.runner.json.ServerList;
-import biz.minecraft.launcher.game.updater.json.MinecraftVersion;
 import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
 import biz.minecraft.launcher.util.LauncherUtils;
 import com.google.gson.Gson;
@@ -27,7 +26,9 @@ public class GameRunner {
 
     private static final Logger logger = LoggerFactory.getLogger(GameRunner.class);
 
-    public GameRunner(AuthenticationResponse authInfo, LinkedList<String> classpath, String mainClass) {
+    public GameRunner(AuthenticationResponse authInfo, LinkedList<String> classpath, String mainClass, LinkedList<File> permittedMods) {
+
+        final ModFilter modFilter = new ModFilter(permittedMods);
 
         String pathSeparator = System.getProperties().getProperty("path.separator");
 
@@ -95,9 +96,9 @@ public class GameRunner {
         pb.directory(LauncherUtils.getWorkingDirectory());
         pb.inheritIO();
 
-        Process process = null;
+        modFilter.revision();
 
-        String out = null;
+        Process process = null;
 
         try {
             process = pb.start();

@@ -244,12 +244,18 @@ public class GameUpdater implements Runnable {
          * The algorithm does not reload files that do not have a checksum (sha1-field) specified.
          */
 
-        ExtraDownloads extraDownloads = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/extra.json");
+        final ExtraDownloads   mods = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/mods.json");
+        final ExtraDownloads extras = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/extra.json");
 
-        for (Download download : extraDownloads.getDownloads()) {
+        final LinkedList<Download> extraDownloads = new LinkedList<>();
 
-            File   file = workingDirectory.toPath().resolve(download.getPath()).toFile();
-            String hash = download.getSha1();
+        extraDownloads.addAll(mods.getDownloads());
+        extraDownloads.addAll(extras.getDownloads());
+
+        for (Download download : extraDownloads) {
+
+            final File   file = workingDirectory.toPath().resolve(download.getPath()).toFile();
+            final String hash = download.getSha1();
 
             // Download file if it does not exist or the hash is invalid
 
@@ -271,7 +277,13 @@ public class GameUpdater implements Runnable {
 
         final String mainClass = forgeVersion.getMainClass();
 
-        GameRunner gameRunner = new GameRunner(authInfo, classpath, mainClass);
+        final LinkedList<File> modList = new LinkedList<>();
+
+        for (Download mod : mods.getDownloads()) {
+            modList.add(new File(LauncherUtils.getWorkingDirectory(), mod.getPath()));
+        }
+
+        GameRunner gameRunner = new GameRunner(authInfo, classpath, mainClass, modList);
 
     }
 
