@@ -10,18 +10,35 @@ use Illuminate\Support\Str;
 class AuthenticationController extends Controller
 {
     /**
-     * Authenticates a user using their password.
+     * Main authentication endpoint.
      *
-     * @param Request $request (username, password)
-     * @return Response (username, uuid, accessToken or error message)
+     * Authenticates user using their username & password, or username & token.
+     *
+     * @param Request $request HTTP-request Object.
+     * @return JSON response with an authentication result.
+     *
+     * Authentication succeed:
+     *
+     *  - username
+     *  - token
+     *  - uuid
+     *  - accessToken
+     *
+     * Authentication failed:
+     *
+     *  - errorMessage
+     *
      */
     public function authenticate(Request $request)
     {
         if ($request->filled(['username', 'password'])) {
 
+            // Authentication request using username & password
+
             $username = $request->input('username');
             $password = $request->input('password');
 
+            // Find a user with the given name
             $user = DB::table('xf_user')->where('username', $username)->first();
 
             if (!empty($user)) {
@@ -31,41 +48,86 @@ class AuthenticationController extends Controller
 
                 if (password_verify($password, $unserialized['hash'])) {
 
+                    // Find a player with the received user ID
                     $player = DB::table('players')->where('user_id', $user->user_id)->first();
 
+                    // Update token & access token
+                    $token        = str_replace('-', '', Str::uuid());
                     $access_token = str_replace('-', '', Str::uuid());
 
                     if (empty($player)) {
-                        $uuid = str_replace('-', '', Str::uuid());
+
+                        $uuid  = str_replace('-', '', Str::uuid());
 
                         DB::table('players')
                             ->updateOrInsert(
                                 ['user_id' => $user->user_id],
-                                ['uuid'    => $uuid, 'access_token' => $access_token]
+                                ['token' => $token, 'uuid' => $uuid, 'access_token' => $access_token]
                             );
                     } else {
+
                         $uuid = $player->uuid;
 
                         DB::table('players')
                             ->updateOrInsert(
                                 ['user_id' => $user->user_id],
-                                ['uuid'    => $player->uuid, 'access_token' => $access_token]
+                                ['token' => $token, 'uuid' => $uuid, 'access_token' => $access_token]
                             );
                     }
 
                     return response([
                         'username'    => $username,
+                        'token'       => $token,
                         'uuid'        => $uuid,
                         'accessToken' => $access_token
                     ]);
-                } else {
-                    return response(['errorMessage' => 'Неверный пароль.'], 400);
                 }
-            } else {
-                return response(['errorMessage' => 'Пользователь не найден.'], 400);
+
+                return response(['errorMessage' => 'Неверный логин или пароль.'], 400);
             }
-        } else {
-            return response(['errorMessage' => 'Некорректный запрос к серверу аутентификации.'], 400);
+
+            return response(['errorMessage' => 'Пользователь с такими данными не найден.'], 400);
+
+        } elseif ($request->filled(['username', 'token'])) {
+
+            // Authentication request using username & token
+
+            $username = $request->input('username');
+            $token    = $request->input('token');
+
+            // Find a user with the given name
+            $user = DB::table('xf_user')->where('username', $username)->first();
+
+            if (!empty($user)) {
+
+                // Find a player with the received user ID & given token
+                $player = DB::table('players')->where('user_id', $user->user_id)->where('token', $token)->first();
+
+                // Update access token
+                $access_token = str_replace('-', '', Str::uuid());
+
+                if (!empty($player)) {
+
+                    $uuid = $player->uuid;
+
+                    DB::table('players')
+                        ->updateOrInsert(
+                            ['user_id' => $user->user_id],
+                            ['token' => $token, 'uuid' => $uuid, 'access_token' => $access_token]
+                        );
+
+                    return response([
+                        'username'    => $username,
+                        'token'       => $token,
+                        'uuid'        => $uuid,
+                        'accessToken' => $access_token
+                    ]);
+                }
+
+                return response(['errorMessage' => 'Игрок с такими данными не найден. Попробуйте заново ввести логин и пароль.'], 400);
+            }
+
+            return response(['errorMessage' => 'Пользователь с такими данными не найден. Попробуйте заново ввести логин и пароль.'], 400);
         }
     }
 
