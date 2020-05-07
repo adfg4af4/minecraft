@@ -1,9 +1,12 @@
 package biz.minecraft.launcher.layout.login;
 
+import biz.minecraft.launcher.Configuration;
 import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
+import biz.minecraft.launcher.layout.login.json.LauncherProfile;
 import biz.minecraft.launcher.layout.login.json.UserCredentials;
 import biz.minecraft.launcher.layout.updater.UpdaterLayout;
+import biz.minecraft.launcher.util.LauncherUtils;
 import com.google.gson.Gson;
 import org.apache.commons.codec.Charsets;
 import org.apache.http.Header;
@@ -18,8 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
@@ -29,7 +31,9 @@ public class Authenticator implements Runnable {
 
     private final Thread thread;
 
-    private final String username, password;
+    private final String username, password, token;
+
+    private final boolean remember;
 
     /**
      * Authenticator Thread Constructor.
@@ -37,12 +41,22 @@ public class Authenticator implements Runnable {
      * Handles user data and starts the thread.
      *
      * @param username
-     * @param password
+     * @param authMethod
+     * @param remember
+     * @param usingToken
      */
-    public Authenticator(String username, String password) {
+    public Authenticator(String username, String authMethod, boolean remember, boolean usingToken) {
 
         this.username = username;
-        this.password = password;
+        this.remember = remember;
+
+        if (usingToken) {
+            this.password = null;
+            this.token    = authMethod;
+        } else {
+            this.password = authMethod;
+            this.token    = null;
+        }
 
         thread = new Thread(this, "Authenticator");
         thread.start();
@@ -50,19 +64,28 @@ public class Authenticator implements Runnable {
 
     // Thread body
 
-    public void run() { authenticate(username, password); }
+    public void run() {
+
+        if (password == null) {
+            authenticate(username, token, remember, true);
+        } else {
+            authenticate(username, password, remember, false);
+        }
+
+    }
 
     /**
-     * Makes authentication request and starts Game-Updater.
+     * Makes authentication request using the password or token and if successful run game-updater.
      *
-     * @param username
-     * @param password
+     * @param username simply username
+     * @param authMethod password or token
+     * @param remember creating launcher profile locally
+     * @param usingToken clear indication of the token-use authentication type
      */
-    public void authenticate(String username, String password) {
+    public void authenticate(String username, String authMethod, boolean remember, boolean usingToken) {
 
         // Sending POST request with username & password to https://auth.minecraft.biz/authenticate
 
-        UserCredentials userCredentials = new UserCredentials(username, password);
         Gson gson                       = new Gson();
         HttpClient httpClient           = HttpClientBuilder.create().build();
         HttpPost post                   = new HttpPost("https://auth.minecraft.biz/authenticate");
@@ -70,7 +93,8 @@ public class Authenticator implements Runnable {
         StringEntity postingString   = null;
 
         try {
-            postingString = new StringEntity(gson.toJson(userCredentials));
+            // Generating JSON-request based on usingToken argument
+            postingString = new StringEntity(gson.toJson(usingToken ? new LauncherProfile(username, authMethod) : new UserCredentials(username, authMethod)));
         } catch (UnsupportedEncodingException e) {
             logger.warn("Serialization error.", e);
         }
@@ -110,11 +134,24 @@ public class Authenticator implements Runnable {
 
         SwingUtilities.invokeLater(() -> {
             if (errorMessage == null) {
+                // The authentication server response does not contain any errors, so starting game-updater
                 UpdaterLayout updaterLayout = new UpdaterLayout();
-            } else if (errorMessage != null) {
-                JOptionPane.showMessageDialog(Main.getLoginLayout(), "Неверный логин или пароль.", "Не удалось войти", JOptionPane.ERROR_MESSAGE);
+
+                // Create a launcher profile using the username and token received from the authentication server if the user asked
+                if (remember) {
+                    LauncherProfile lp = new LauncherProfile(authenticationResponse.getUsername(), authenticationResponse.getToken());
+                    String        data = gson.toJson(lp);
+                    File          file = new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE);
+
+                    try (FileWriter fileWriter = new FileWriter(file, false)) {
+                        fileWriter.write(data);
+                    } catch (IOException e) {
+                        logger.warn("Failed to create launcher profile.", e);
+                    }
+                }
             } else {
-                JOptionPane.showMessageDialog(Main.getLoginLayout(), "Ошибка сервера авторизации. Пожалуйста свяжитесь с администратором.", "Ошибка сервера авторизации", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(Main.getLoginLayout(), errorMessage, "Ошибка авторизации", JOptionPane.ERROR_MESSAGE);
+                System.exit(0);
             }
         });
     }

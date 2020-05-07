@@ -1,6 +1,11 @@
 package biz.minecraft.launcher.layout.login;
 
+import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.Launcher;
+import biz.minecraft.launcher.layout.login.json.LauncherProfile;
+import biz.minecraft.launcher.util.LauncherUtils;
 import net.miginfocom.swing.MigLayout;
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,6 +14,8 @@ import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
+import java.io.IOException;
 
 public class LoginLayout extends JFrame {
 
@@ -16,7 +23,10 @@ public class LoginLayout extends JFrame {
 
     private JTextField usernameField;
     private JPasswordField passwordField;
-    private JButton submitButton, cancelButton;
+    private JButton submitButton;
+    private JCheckBox rememberMeCheckbox;
+
+    private boolean remember;
 
     // Constructor
 
@@ -39,16 +49,27 @@ public class LoginLayout extends JFrame {
         passwordField = new JPasswordField(20);
         passwordField.getDocument().addDocumentListener(credentialsListener);
 
+        rememberMeCheckbox = new JCheckBox("Запомнить меня");
+        rememberMeCheckbox.addItemListener(new RememberMeItemListener());
+
         submitButton = new JButton("Войти");
         submitButton.addActionListener(new SubmitButtonActionListener());
         submitButton.setEnabled(false);
 
-        cancelButton = new JButton("Закрыть");
-        cancelButton.addActionListener(new CancelButtonActionListener());
+        if (Launcher.profileExists()) {
+            if (Launcher.profileValid()) {
+                LauncherProfile lp = Launcher.getProfile();
+
+                usernameField.setText(lp.getUsername());
+                passwordField.setText("************");
+                rememberMeCheckbox.setSelected(true); // TODO: Fix hotkeys
+                submitButton.setEnabled(true);
+            }
+        }
 
         JPanel loginPanel = getLoginPanel();
 
-        // Make HotKeyListener working on any focused component
+        // Make HotKeyListener working on any focused component.
 
         for (Component c : loginPanel.getComponents()) {
             c.addKeyListener(new HotKeyListener());
@@ -78,7 +99,7 @@ public class LoginLayout extends JFrame {
         loginPanel.add(passwordField, "gap rel, wrap rel, growx");
 
         loginPanel.add(submitButton, "skip 1, split, sg buttons, align right");
-        loginPanel.add(cancelButton, "sg buttons");
+        loginPanel.add(rememberMeCheckbox, "sg buttons");
 
         return loginPanel;
     }
@@ -142,31 +163,66 @@ public class LoginLayout extends JFrame {
     }
 
     /**
-     * Listens for submit button is being pressed.
-     * Closes window and sends authentication request.
+     * Submit button listener.
+     *
+     * Closes window and sends authentication request either with given username & password
+     * or if possible using parsed from launcher profile username & authentication token.
      */
     class SubmitButtonActionListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
 
-            logger.debug("Authentication requested.");
-
-            String username = usernameField.getText();
-            String password = new String(passwordField.getPassword());
-
             setVisible(false);
 
-            Authenticator authenticator = new Authenticator(username, password);
+            if (!remember) {
+                if (Launcher.profileExists()) {
+                    try {
+                        FileUtils.forceDelete(new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE));
+                        logger.warn("Launcher profile has been deleted successfully.");
+                    } catch (IOException ex) {
+                        logger.warn("Failed to delete launcher profile.", ex);
+                    }
+                }
+            }
+
+            if (Launcher.profileExists()) {
+                if (Launcher.profileValid()) {
+                    LauncherProfile lp = Launcher.getProfile();
+
+                    String username = lp.getUsername();
+                    String    token = lp.getToken();
+
+                    logger.debug("Authentication requested with parsed username & token from launcher profile.");
+
+                    // Requesting authentication using launcher profile's username & token
+                    Authenticator authenticator = new Authenticator(username, token, remember, true);
+                }
+            } else {
+                String username = usernameField.getText();
+                String password = new String(passwordField.getPassword());
+
+                logger.debug("Authentication requested with given username & password.");
+                // Requesting authentication using given username & password
+                Authenticator authenticator = new Authenticator(username, password, remember, false);
+            }
         }
     }
 
     /**
-     * Listens for cancel button is being pressed.
+     * Listens for remember me checkbox and changes `remember` boolean field state.
      */
-    class CancelButtonActionListener implements ActionListener {
+    class RememberMeItemListener implements ItemListener {
         @Override
-        public void actionPerformed(ActionEvent e) {
-            System.exit(0);
+        public void itemStateChanged(ItemEvent e) {
+
+            remember = e.getStateChange() == 1 ?  true : false;
+
+            boolean state = remember ? false : true;
+
+            usernameField.setEnabled(state);
+            passwordField.setEnabled(state);
+
+            logger.debug("Remember me: " + remember);
         }
     }
 }

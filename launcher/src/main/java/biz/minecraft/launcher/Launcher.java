@@ -1,26 +1,31 @@
 package biz.minecraft.launcher;
 
 import biz.minecraft.launcher.json.LauncherVersion;
+import biz.minecraft.launcher.layout.login.json.LauncherProfile;
+import biz.minecraft.launcher.util.LauncherUtils;
 import com.google.gson.Gson;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.CharSequenceReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Reader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class Launcher {
 
     private final static Logger logger = LoggerFactory.getLogger(Launcher.class);
-
     private final static Gson gson = new Gson();
-
     private final static LauncherVersion version = getVersion();
+    private final static File profile = new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE);
 
     /**
      * Get a deserialized launcher version object.
@@ -49,6 +54,41 @@ public class Launcher {
                     System.exit(0);
                 }
             }
+        }
+    }
+
+    /**
+     * Check whether local launcher profile file exists.
+     *
+     * @return boolean
+     */
+    public static boolean profileExists() {
+        return profile.exists() && !profile.isDirectory() ? true : false;
+    }
+
+    /**
+     * Check whether profile contains username & token.
+     *
+     * @return boolean
+     */
+    public static boolean profileValid() {
+        LauncherProfile lp = getProfile();
+        return lp.getUsername() != null && lp.getToken() != null ? true : false;
+    }
+
+    /**
+     * Get serialized launcher profile from local json file.
+     *
+     * @return Serialized launcher profile Object.
+     */
+    public static LauncherProfile getProfile() {
+        try (Reader reader = new CharSequenceReader(
+                new String(FileUtils.readFileToByteArray(profile)))) {
+            return gson.fromJson(reader, LauncherProfile.class);
+        } catch (IOException e) {
+            logger.warn("Failed to get launcher profile.", e);
+            JOptionPane.showMessageDialog(null, "Не удалось найти файл с вашими сохраненными учетными данными. \nПожалуйста введите логин и пароль заново.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            return new LauncherProfile(null, null);
         }
     }
 

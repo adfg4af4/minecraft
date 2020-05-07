@@ -5,12 +5,10 @@ import biz.minecraft.launcher.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Properties;
 import java.util.zip.ZipFile;
 
 public class LauncherUtils {
@@ -87,5 +85,4 @@ public class LauncherUtils {
 
         return workingDirectory;
     }
-
 }

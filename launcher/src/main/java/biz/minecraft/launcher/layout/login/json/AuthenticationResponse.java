@@ -10,6 +10,7 @@ public class AuthenticationResponse {
     private String username;
     private String uuid;
     private String accessToken;
+    private String token;
 
     public String getErrorMessage() {
         return errorMessage;
@@ -27,8 +28,10 @@ public class AuthenticationResponse {
         return accessToken;
     }
 
+    public String getToken() { return token; }
+
     @Override
     public String toString() {
-        return "{ errorMessage: " + errorMessage + " username: " + username + " uuid: " + uuid + " accessToken: " + accessToken + " }";
+        return "{ errorMessage: " + errorMessage + " username: " + username + " uuid: " + uuid + " accessToken: " + accessToken + " token: " + token + " }";
     }
 }
