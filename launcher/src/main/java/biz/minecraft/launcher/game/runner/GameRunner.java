@@ -1,6 +1,6 @@
 package biz.minecraft.launcher.game.runner;
 
-import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.Constants;
 import biz.minecraft.launcher.OperatingSystem;
 import biz.minecraft.launcher.game.runner.json.Server;
 import biz.minecraft.launcher.game.runner.json.ServerList;
@@ -32,7 +32,7 @@ public class GameRunner {
 
         String pathSeparator = System.getProperties().getProperty("path.separator");
 
-        LinkedList<Server> servers = getServerList(Configuration.SERVER_LIST_URL);
+        LinkedList<Server> servers = getServerList(Constants.SERVER_LIST_URL);
 
         String natives = new File(LauncherUtils.getWorkingDirectory(), "versions/1.12.2/natives").getAbsolutePath();
         String libraries = classpath.stream().collect(Collectors.joining(pathSeparator));
@@ -107,7 +107,7 @@ public class GameRunner {
 
         } catch (IOException e) {
             logger.warn("Не удалось запустить процесс игры.", e);
-            JOptionPane.showConfirmDialog(null, "Не удалось запустить игру, обратитесь на форум Minecraft.biz в раздел \"Техническая поддержка\".", "Minecraft Пустоши", JOptionPane.OK_CANCEL_OPTION);
+            JOptionPane.showConfirmDialog(null, "Не удалось запустить игру, обратитесь на форум Minecraft.biz в раздел \"Техническая поддержка\".", Constants.LAUNCHER_TITLE, JOptionPane.OK_CANCEL_OPTION);
             System.exit(0);
         }
 
@@ -132,7 +132,7 @@ public class GameRunner {
             } catch (IOException e) {
 
                 logger.warn("Не удалось получить список серверов.", e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось получить список серверов, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось получить список серверов, повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;

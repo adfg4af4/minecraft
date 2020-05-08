@@ -1,6 +1,6 @@
 package biz.minecraft.launcher.util;
 
-import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.Constants;
 import biz.minecraft.launcher.OperatingSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +46,7 @@ public class LauncherUtils {
     }
 
     public static void getLauncherInfo(Logger logger) {
-        logger.debug("Mincraft.biz Launcher {}", Configuration.CURRENT_VERSION);
+        logger.debug("Mincraft.biz Launcher {}", Constants.CURRENT_VERSION);
         logger.debug("Working directory: '{}'", LauncherUtils.getWorkingDirectory());
         logger.debug("Java path: {}", OperatingSystem.getCurrentPlatform().getJavaDir());
         logger.debug("Operating System: {}", OperatingSystem.getCurrentPlatform().toString());

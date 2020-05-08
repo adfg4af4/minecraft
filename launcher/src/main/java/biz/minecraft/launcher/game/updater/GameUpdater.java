@@ -1,5 +1,6 @@
 package biz.minecraft.launcher.game.updater;
 
+import biz.minecraft.launcher.Constants;
 import biz.minecraft.launcher.game.runner.GameRunner;
 import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.OperatingSystem;
@@ -60,7 +61,7 @@ public class GameUpdater implements Runnable {
 
         // Note: Patched AuthLib & Minecraft.jar must be overridden in minecraft.json (!)
 
-        final MinecraftVersion version = getMinecraftVersion("https://cloud.minecraft.biz/game/wasteland/minecraft.json");
+        final MinecraftVersion version = getMinecraftVersion(Constants.MINECRAFT_VERSION);
 
         final LinkedList<String> classpath = new LinkedList<>(); // Class path for game runner
 
@@ -205,7 +206,7 @@ public class GameUpdater implements Runnable {
          * TODO: Support for the original Forge repository
          */
 
-        final ForgeVersion forgeVersion = getForgeVersion("https://cloud.minecraft.biz/game/wasteland/forge.json");
+        final ForgeVersion forgeVersion = getForgeVersion(Constants.FORGE_VERSION);
 
         for (ForgeVersion.Library library : forgeVersion.getLibraries()) {
 
@@ -217,7 +218,7 @@ public class GameUpdater implements Runnable {
                 URL    url  = library.getUrl();
 
                 if (url == null) {
-                    url = LauncherUtils.getURL("https://libraries.minecraft.net/" + path);
+                    url = LauncherUtils.getURL(Constants.MINECRAFT_LIBRARIES + path);
                 } else
                     url = LauncherUtils.getURL(url + path);
 
@@ -244,8 +245,8 @@ public class GameUpdater implements Runnable {
          * The algorithm does not reload files that do not have a checksum (sha1-field) specified.
          */
 
-        final ExtraDownloads   mods = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/mods.json");
-        final ExtraDownloads extras = getExtraDownloads("https://cloud.minecraft.biz/game/wasteland/extra.json");
+        final ExtraDownloads   mods = getExtraDownloads(Constants.CLIENT_MODS);
+        final ExtraDownloads extras = getExtraDownloads(Constants.CLIENT_EXTRA);
 
         final LinkedList<Download> extraDownloads = new LinkedList<>();
 
@@ -367,7 +368,7 @@ public class GameUpdater implements Runnable {
             } catch (IOException e) {
 
                 logger.warn("Failed to get minecraft version from: " + versionURL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -401,7 +402,7 @@ public class GameUpdater implements Runnable {
             } catch (IOException e) {
 
                 logger.warn("Failed to get forge version from: " + versionURL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -431,7 +432,7 @@ public class GameUpdater implements Runnable {
             } catch (IOException e) {
 
                 logger.warn("Failed to get minecraft version from: " + versionURL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -461,7 +462,7 @@ public class GameUpdater implements Runnable {
                 break;
             } catch (IOException e) {
                 logger.warn("Не удалось загрузить " + url + " :: " + path, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -524,7 +525,7 @@ public class GameUpdater implements Runnable {
                 break;
             } catch (IOException e) {
                 logger.warn("Не удалось загрузить " + url + " :: " + path, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Не удалось загрузить " + path.getName() + ", повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;

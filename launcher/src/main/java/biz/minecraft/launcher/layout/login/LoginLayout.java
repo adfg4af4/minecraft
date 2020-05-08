@@ -1,6 +1,6 @@
 package biz.minecraft.launcher.layout.login;
 
-import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.Constants;
 import biz.minecraft.launcher.Launcher;
 import biz.minecraft.launcher.layout.login.json.LauncherProfile;
 import biz.minecraft.launcher.util.LauncherUtils;
@@ -177,7 +177,7 @@ public class LoginLayout extends JFrame {
             if (!remember) {
                 if (Launcher.profileExists()) {
                     try {
-                        FileUtils.forceDelete(new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE));
+                        FileUtils.forceDelete(new File(LauncherUtils.getWorkingDirectory(), Constants.LAUNCHER_PROFILE));
                         logger.warn("Launcher profile has been deleted successfully.");
                     } catch (IOException ex) {
                         logger.warn("Failed to delete launcher profile.", ex);

@@ -25,7 +25,7 @@ public class Launcher {
     private final static Logger logger = LoggerFactory.getLogger(Launcher.class);
     private final static Gson gson = new Gson();
     private final static LauncherVersion version = getVersion();
-    private final static File profile = new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE);
+    private final static File profile = new File(LauncherUtils.getWorkingDirectory(), Constants.LAUNCHER_PROFILE);
 
     /**
      * Get a deserialized launcher version object.
@@ -37,7 +37,7 @@ public class Launcher {
 
         while (true) {
 
-            try (InputStream is = new URL(Configuration.VERSION_URL).openStream()) {
+            try (InputStream is = new URL(Constants.LAUNCHER_VERSION).openStream()) {
 
                 String version = IOUtils.toString(is, StandardCharsets.UTF_8);
 
@@ -45,8 +45,8 @@ public class Launcher {
 
             } catch (IOException e) {
 
-                logger.warn("Failed to get launcher version from: " + Configuration.VERSION_URL, e);
-                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", "Minecraft Пустоши", JOptionPane.YES_NO_OPTION);
+                logger.warn("Failed to get launcher version from: " + Constants.LAUNCHER_VERSION, e);
+                int userChoice = JOptionPane.showConfirmDialog(null, "Ошибка подключения, повторить?", Constants.LAUNCHER_TITLE, JOptionPane.YES_NO_OPTION);
 
                 if (userChoice == 0) {
                     continue;
@@ -87,7 +87,7 @@ public class Launcher {
             return gson.fromJson(reader, LauncherProfile.class);
         } catch (IOException e) {
             logger.warn("Failed to get launcher profile.", e);
-            JOptionPane.showMessageDialog(null, "Не удалось найти файл с вашими сохраненными учетными данными. \nПожалуйста введите логин и пароль заново.", "Ошибка", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Не удалось найти файл с вашими сохраненными учетными данными. \nПожалуйста введите логин и пароль заново.", Constants.LAUNCHER_TITLE, JOptionPane.ERROR_MESSAGE);
             return new LauncherProfile(null, null);
         }
     }
@@ -99,7 +99,7 @@ public class Launcher {
      */
     public static boolean isOutdated() {
 
-        if (Configuration.CURRENT_VERSION == version.getVersion()) {
+        if (Constants.CURRENT_VERSION == version.getVersion()) {
             return false;
         }
 

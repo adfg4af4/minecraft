@@ -1,6 +1,6 @@
 package biz.minecraft.launcher.layout.login;
 
-import biz.minecraft.launcher.Configuration;
+import biz.minecraft.launcher.Constants;
 import biz.minecraft.launcher.Main;
 import biz.minecraft.launcher.layout.login.json.AuthenticationResponse;
 import biz.minecraft.launcher.layout.login.json.LauncherProfile;
@@ -88,7 +88,7 @@ public class Authenticator implements Runnable {
 
         Gson gson                       = new Gson();
         HttpClient httpClient           = HttpClientBuilder.create().build();
-        HttpPost post                   = new HttpPost("https://auth.minecraft.biz/authenticate");
+        HttpPost post                   = new HttpPost(Constants.AUTHENTICATION_ENDPOINT);
 
         StringEntity postingString   = null;
 
@@ -141,7 +141,7 @@ public class Authenticator implements Runnable {
                 if (remember) {
                     LauncherProfile lp = new LauncherProfile(authenticationResponse.getUsername(), authenticationResponse.getToken());
                     String        data = gson.toJson(lp);
-                    File          file = new File(LauncherUtils.getWorkingDirectory(), Configuration.LAUNCHER_PROFILE);
+                    File          file = new File(LauncherUtils.getWorkingDirectory(), Constants.LAUNCHER_PROFILE);
 
                     try (FileWriter fileWriter = new FileWriter(file, false)) {
                         fileWriter.write(data);
@@ -150,7 +150,7 @@ public class Authenticator implements Runnable {
                     }
                 }
             } else {
-                JOptionPane.showMessageDialog(Main.getLoginLayout(), errorMessage, "Ошибка авторизации", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(Main.getLoginLayout(), errorMessage, Constants.LAUNCHER_TITLE, JOptionPane.ERROR_MESSAGE);
                 System.exit(0);
             }
         });
